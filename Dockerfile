@@ -1,14 +1,15 @@
-FROM golang:1.22 as builder
+FROM golang:1.22 AS builder
 
 WORKDIR /app
 COPY . .
 
-RUN go mod tidy
-RUN go build -o server .
+WORKDIR /app/server
+# 👇 Set static flags
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/server-binary
 
 FROM alpine:latest
 WORKDIR /root/
-COPY --from=builder /app/server .
+COPY --from=builder /app/server-binary .
 
-ENTRYPOINT["./server"]
+ENTRYPOINT ["./server-binary"]
 
